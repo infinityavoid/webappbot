@@ -76,7 +76,7 @@ const getInvoice = (data) => {
   return invoice;
 };
 
-app.post('http://localhost:8000/createInvoice', (req, res)=>
+app.post('/createInvoice', (req, res)=>
 {
   const data = req.body
   {
