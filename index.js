@@ -84,7 +84,7 @@ const getInvoice = (data) => {
     currency: "RUB",
     prices: data.map((item) => ({
       label: `${item.name} x ${item.quantity}`,
-      amount: (item.price * item.quantity).toFixed(0), //?
+      amount: (item.price * item.quantity), //?
     })),
     payload: 1, //?
     /*need_name: true,
