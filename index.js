@@ -5,7 +5,7 @@ const axios = require("axios").default;
 
 const token = '5812660522:AAH1wOxYdxVNUcvoHFIE1MOs5ykJ2d-6mVA';
 const webAppUrl = 'https://meek-fudge-9f9fb7.netlify.app/';
-const provider = '401643678:TEST:85117dc6-9d02-41ab-b6d6-0bdfeb78b728'
+const provider = '1744374395:TEST:7563da2fb59413c5cb9f'
 
 const bot = new TelegramBot(token, {polling: true});
 const app = express();
@@ -21,10 +21,14 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
-  const text = msg.text;
-  await bot.sendMessage(chatId, 'ДАвай давай',
+  //const text = msg.text;
+  console.log(msg.from.id)
+  console.log(msg)
+  if(!msg.successful_payment)
+  {
+    await bot.sendMessage(chatId, '<b> Давайте начнем! </b>' + '\r\n'+ '\r\n' + 'Нажмите на кнопку ниже, чтобы заказать идеальный обед!', 
     {
-      
+      parse_mode: 'HTML',
         reply_markup:
         {
             inline_keyboard:[
@@ -32,7 +36,8 @@ bot.on('message', async (msg) => {
             ]
         }
     });
-  if (text === '/start')
+  }
+  /*if (text === '/start')
   {
     await bot.sendMessage(chatId, 'ДАвай давай',
     {
@@ -43,8 +48,8 @@ bot.on('message', async (msg) => {
             ]
         }
     });
-  }
-  if (msg?.web_app_data?.data)
+  }*/
+  /*if (msg?.web_app_data?.data)
   {
     console.log(msg?.web_app_data?.data)
     try
@@ -56,10 +61,21 @@ bot.on('message', async (msg) => {
       await bot.sendMessage(chatId, 'Общая сумма: ' + total)
     }
     catch(e){}
-  }
+  }*/
+});
+bot.on('pre_checkout_query',async (query) => {
+  // Проверяем наличие товаров в корзине перед платежом
+    await bot.answerPreCheckoutQuery(query.id, true); // сообщаем Telegram, платеж можно проводить
+});
+bot.on('successful_payment',async (msg) => {
+  const chatId = msg.chat.id;
+  const amount = msg.successful_payment.total_amount / 100; // сумма платежа в копейках
+
+ await bot.sendMessage(chatId, `Спасибо за покупку на сумму ${amount} рублей!`);
 });
 
 const getInvoice = (data) => {
+  console.log(data)
   const invoice = {
     provider_token: provider,
     start_parameter: "get_access", //Уникальный параметр глубинных ссылок. Если оставить поле пустым, переадресованные копии отправленного сообщения будут иметь кнопку «Оплатить», позволяющую нескольким пользователям производить оплату непосредственно из пересылаемого сообщения, используя один и тот же счет. Если не пусто, перенаправленные копии отправленного сообщения будут иметь кнопку URL с глубокой ссылкой на бота (вместо кнопки оплаты) со значением, используемым в качестве начального параметра.
@@ -68,9 +84,13 @@ const getInvoice = (data) => {
     currency: "RUB",
     prices: data.map((item) => ({
       label: `${item.name} x ${item.quantity}`,
-      amount: (item.price * item.quantity).toFixed(0), //?
+      amount: (item.price * item.quantity * 100).toFixed(0), //?
     })),
-    payload: 1 //?
+    payload: 1, //?
+    /*need_name: true,
+    need_phone_number:true,
+    need_shipping_address:true,
+    need_email:true*/
   };
 
   return invoice;
@@ -79,10 +99,11 @@ const getInvoice = (data) => {
 app.post('/createInvoice', (req, res)=>
 {
   const data = req.body
+  console.log(data)
   {
     axios
     .post(
-      `https://api.telegram.org/bot${process.env.BOT_ID}/createInvoiceLink`, //?
+      `https://api.telegram.org/bot${token}/createInvoiceLink`, //?
       getInvoice(Array.isArray(data) ? data : [])
     )
     .then((response) => {
