@@ -68,7 +68,7 @@ bot.on('pre_checkout_query',async (query) => {
 });
 bot.on('successful_payment',async (msg) => {
   const chatId = msg.chat.id;
-  const amount = msg.successful_payment.total_amount ; // сумма платежа в копейках
+  const amount = msg.successful_payment.total_amount / 100; // сумма платежа в копейках
 
  await bot.sendMessage(chatId, `Спасибо за покупку на сумму ${amount} рублей!`);
 });
@@ -83,7 +83,7 @@ const getInvoice = (data) => {
     currency: "RUB",
     prices: data.map((item) => ({
       label: `${item.name} x ${item.quantity}`,
-      amount: (item.price * item.quantity), //?
+      amount: (item.price * item.quantity) * 100, //?
     })),
     payload: 1, //?
     /*need_name: true,
