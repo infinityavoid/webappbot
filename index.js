@@ -38,7 +38,7 @@ bot.on('message', async (msg) => {
   }
   /*if (text === '/start')
   {
-    await bot.sendMessage(chatId, 'ДАвай давай',
+    await bot.sendMessage(chatId, 'lets start',
     {
         reply_markup:
         {
